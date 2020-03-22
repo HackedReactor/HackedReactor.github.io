@@ -322,59 +322,21 @@ $(document).ready(function () {
 <h2>Lets set up our environment</h2>
 <pre class="r"><code>#Load required libraries
 library(ggplot2)
-library(dplyr)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;dplyr&#39;</code></pre>
-<pre><code>## The following objects are masked from &#39;package:stats&#39;:
-## 
-##     filter, lag</code></pre>
-<pre><code>## The following objects are masked from &#39;package:base&#39;:
-## 
-##     intersect, setdiff, setequal, union</code></pre>
-<pre class="r"><code>library(tidyr)
+library(dplyr)
+library(tidyr)
 library(stringr)
-library(magrittr)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;magrittr&#39;</code></pre>
-<pre><code>## The following object is masked from &#39;package:tidyr&#39;:
-## 
-##     extract</code></pre>
-<pre class="r"><code>library(maps)
+library(magrittr)
+library(maps)
 library(mapproj)
-library(maptools)</code></pre>
-<pre><code>## Loading required package: sp</code></pre>
-<pre><code>## Checking rgeos availability: FALSE
-##      Note: when rgeos is not available, polygon geometry     computations in maptools depend on gpclib,
-##      which has a restricted licence. It is disabled by default;
-##      to enable gpclib, type gpclibPermit()</code></pre>
-<pre class="r"><code>library(GGally)</code></pre>
-<pre><code>## Registered S3 method overwritten by &#39;GGally&#39;:
-##   method from   
-##   +.gg   ggplot2</code></pre>
-<pre><code>## 
-## Attaching package: &#39;GGally&#39;</code></pre>
-<pre><code>## The following object is masked from &#39;package:dplyr&#39;:
-## 
-##     nasa</code></pre>
-<pre class="r"><code>library(ggalt)</code></pre>
-<pre><code>## Registered S3 methods overwritten by &#39;ggalt&#39;:
-##   method                  from   
-##   grid.draw.absoluteGrob  ggplot2
-##   grobHeight.absoluteGrob ggplot2
-##   grobWidth.absoluteGrob  ggplot2
-##   grobX.absoluteGrob      ggplot2
-##   grobY.absoluteGrob      ggplot2</code></pre>
-<pre class="r"><code>library(mice)</code></pre>
-<pre><code>## 
-## Attaching package: &#39;mice&#39;</code></pre>
-<pre><code>## The following objects are masked from &#39;package:base&#39;:
-## 
-##     cbind, rbind</code></pre>
-<pre class="r"><code>library(e1071)
+library(maptools)
+library(GGally)
+library(ggalt)
+library(mice)
+library(e1071)
 library(class)
-library(caret)</code></pre>
-<pre><code>## Loading required package: lattice</code></pre>
-<pre class="r"><code>#Import the data
+library(caret)
+
+#Import the data
 beers = read.csv(&quot;/Users/password1234/Documents/Doing_Data_Science/MSDS_6306_Doing-Data-Science/Unit\ 8\ and\ 9\ Case\ Study\ 1/Beers.csv&quot;, header = TRUE)
 breweries = read.csv(&quot;/Users/password1234/Documents/Doing_Data_Science/MSDS_6306_Doing-Data-Science/Unit\ 8\ and\ 9\ Case\ Study\ 1/Breweries.csv&quot;, header = TRUE)</code></pre>
 </div>
@@ -506,9 +468,9 @@ max(beersAndBrew$IBU)</code></pre>
 <pre class="r"><code>#Filter the State by above value
 beersAndBrew %&gt;% select(State, IBU) %&gt;% filter(IBU == 138)</code></pre>
 <pre><code>##   State IBU
-## 1    CA 138
-## 2    OR 138
-## 3    CO 138</code></pre>
+## 1    OR 138
+## 2    IL 138
+## 3    PA 138</code></pre>
 <pre class="r"><code>#Finding the highest value for ABV and then tracing the state
 max(beersAndBrew$ABV)</code></pre>
 <pre><code>## [1] 0.128</code></pre>
@@ -521,7 +483,7 @@ beersAndBrew %&gt;% select(State, ABV) %&gt;% filter(ABV == 0.128)</code></pre>
 <pre class="r"><code>#Lets get the summary
 summary(beersAndBrew$ABV)</code></pre>
 <pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
-##  0.0010  0.0500  0.0560  0.0597  0.0670  0.1280</code></pre>
+## 0.00100 0.05000 0.05600 0.05979 0.06700 0.12800</code></pre>
 <pre class="r"><code>#Lets find the distribution
 beersAndBrew %&gt;% ggplot(aes(x = ABV)) + geom_histogram(fill = &quot;red&quot;, color = &quot;black&quot;) + stat_function(fun = dnorm, args = list(mean = mean(beersAndBrew$ABV), sd = sd(beersAndBrew$ABV))) + ggtitle(&quot;Distribution of ABV&quot;) + ylab(&quot;Frequency&quot;)</code></pre>
 <pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
