@@ -1,11 +1,16 @@
 ---
-title: "Simple Website"
+title: "About Me"
 author: "Aniketh V"
 date: "3/21/2020"
 output: html_document
 ---
 
-# The Simple yet awesome website
-## Note: The 6 lines of text abobe are the YAML tags
-### We will Knit the RMD to a HTML file next
-Then push index.html to the github.io repo.
+# Unit 12 Website
+### A little bit about me:
+I am from Brea, California and immigrated to the states when I was a wee lad. Some of my interests include basketball, technology, and outdoor activities.
+
+I currently work at Sony Pictures in Cyber security, more specifically PAM (Privleged Access Management).
+
+I did my undergrad at California State University-Fullerton with a degree in Business Administration | Concentration: MIS. Now I am currently pursuing my masters in Data Science from SMU.
+
+### Some of my recent projects and analyses that I completed.
