@@ -1,0 +1,210 @@
+---
+title: 'Case Study 2: DDS'
+author: "Aniketh V"
+date: "4/13/2020"
+output: html_document
+---
+
+#Attrition and Income- Frito Lays
+
+##Introduction
+Greetings! Today we will be discussing "Attrition and Income" too check what leads to attrition and income levels for talent management. 
+
+#Setting up the environment
+```{r}
+#Loading in the required libraries
+library(stringr)
+library(dplyr)
+library(plyr)
+library(magrittr)
+library(ggplot2)
+library(tidyr)
+library(GGally)
+library(ggalt)
+library(mice)
+library(e1071)
+library(class)
+library(caret)
+
+#Reading in the data
+attritionData = read.csv("/Users/password1234/Documents/Doing_Data_Science/MSDS_6306_Doing-Data-Science/Unit\ 14\ and\ 15\ Case\ Study\ 2/CaseStudy2-data.csv", header = TRUE)
+noAttritionData = read.csv("/Users/password1234/Documents/Doing_Data_Science/MSDS_6306_Doing-Data-Science/Unit\ 14\ and\ 15\ Case\ Study\ 2/CaseStudy2CompSet\ No\ Attrition.csv", header = TRUE)
+noSalaryData = read.csv("/Users/password1234/Documents/Doing_Data_Science/MSDS_6306_Doing-Data-Science/Unit\ 14\ and\ 15\ Case\ Study\ 2/CaseStudy2CompSet\ No\ Salary.csv", header = TRUE)
+
+#Get a look at the summary for the attrition data
+summary(attritionData)
+summary(noAttritionData)
+```
+
+##Exploratory Data Analysis
+As part of the first step we would like to take a rough look at the data at hand. We want to do some intial analysis to see if anything catches our eye. Additionally, we will take a look at the data types for the variables to see what we are working with.
+```{r}
+#View the data types for each variable we are dealing with
+dplyr::glimpse(attritionData)
+
+#Separate the numerical and categorical variables in the dataframe
+sapply(attritionData, is.factor)
+
+#Categorical variables only
+categoricalVar = attritionData[,sapply(attritionData, is.factor)] 
+summary(categoricalVar)
+
+#Numerical variables only
+numericalVar = attritionData[,!sapply(attritionData, is.factor)]
+summary(numericalVar)
+
+#Lets look at a rough analysis on multiple different columns to see if we can figure something out
+attritionData %>% select(Attrition, JobRole, MonthlyIncome) %>% ggpairs(aes(color = Attrition))
+attritionData %>% select(MonthlyIncome, Education, TotalWorkingYears, Attrition) %>% ggpairs(mapping = aes(color = Attrition)) + ggtitle("Monthly Income vs Education, Experience, and Attrition")
+attritionData %>% select(MonthlyIncome, YearsAtCompany, TotalWorkingYears, YearsInCurrentRole, OverTime) %>% ggpairs(mapping = aes(color = OverTime)) + ggtitle("Monthly Income vs Years in Industry by Overtime")
+
+#Lets look at if Monthyly income and Job Role play a role in determining Attrition
+attritionData %>% ggplot(aes(x = JobRole, y = MonthlyIncome, fill = Attrition)) + geom_bar(stat = "identity", width = .5) + labs(title = "Income", subtitle = "along with Attrition") + theme(axis.text.x = element_text(angle = 65, vjust = 0.6))
+
+attritionData %>% ggplot(aes(x = MonthlyIncome, y = YearsAtCompany, color = JobRole)) + geom_point(position = "jitter")
+```
+At a glance, it looks like a common variable that influences Attrition as well as monthly income is Total Working Years (experience). There is a moderate correlation between Monthly Income and Years at company along with attrition.
+
+```{r}
+#ScatterPlot for trends
+attritionData %>% ggplot(aes(x = MonthlyIncome, y = Education)) + geom_point(position = "jitter")
+
+attritionData %>% ggplot(aes(x = Age, y = Attrition)) + geom_point(position = "jitter")
+
+
+#Need to dummy code Attrition
+attritionData$AttritionNum = str_replace(attritionData$Attrition, "No", "0")
+
+attritionData$AttritionNum = str_replace(attritionData$AttritionNum, "Yes", "1")
+
+attritionData$AttritionNum = as.integer(attritionData$AttritionNum)
+
+noAttr = noAttritionData %>% select(ID, WorkLifeBalance, JobInvolvement, YearsAtCompany)
+
+attritionData %>% ggplot(aes(x = Attrition)) + geom_bar()
+
+#Lets do KNN
+case = attritionData %>% select(ID, WorkLifeBalance, JobInvolvement, YearsAtCompany, Attrition)
+att = data_frame(WorkLifeBalance = 2, JobInvolvement = 1, YearsAtCompany = 5)
+knn(case[,c(2,3,4)], att, case$Attrition, k = 3, prob = TRUE)
+attr_pred = knn(case[,c(2,3,4)], noAttr[,c(2,3,4)], case$Attrition, k = 19, prob = TRUE)
+noAttr$Attrition = attr_pred
+table(attr_pred, noAttr$Attrition)
+noAttr = noAttr[,-5]
+
+#Train Data and Test Set
+set.seed(6)
+splitPerc = .70
+trainIndices = sample(1:dim(case)[1], round(splitPerc * dim(case)[1]))
+train = case[trainIndices,]
+test = case[-trainIndices,]
+
+#K = 3
+classifications = knn(train[,2:4], test[,2:4], train$Attrition, k = 3, prob = TRUE)
+table(classifications, test$Attrition)
+confusionMatrix(table(classifications, test$Attrition))
+#K = 7
+classifications = knn(train[,2:4], test[,2:4], train$Attrition, k = 7, prob = TRUE)
+table(classifications, test$Attrition)
+confusionMatrix(table(classifications, test$Attrition))
+#k=13
+classifications = knn(train[,2:4], test[,2:4], train$Attrition, k = 13, prob = TRUE)
+table(classifications, test$Attrition)
+confusionMatrix(table(classifications, test$Attrition))
+
+#Now going to loop through more than one k and find the average
+iterations = 100
+set.seed(6)
+numks = 30
+masterAcc = matrix(nrow = iterations, ncol = numks)
+kkk = c()
+Sens = c()
+Spec = c()
+  
+for(j in 1:iterations)
+{
+accs = data.frame(accuracy = numeric(30), k = numeric(30))
+trainIndices = sample(1:dim(case)[1], round(splitPerc * dim(case)[1]))
+train = case[trainIndices,]
+test = case[-trainIndices,]
+for(i in 1:numks)
+{
+  classifications = knn(train[, c(2:4)], test[, c(2:4)], train$Attrition, prob = TRUE, k = i)
+  table(classifications, test$Attrition)
+  CM = confusionMatrix(table(classifications,test$Attrition))
+  masterAcc[j,i] = CM$overall[1]
+  kkk[i] = CM$overall[1]
+  Sens[i] = CM$byClass[1]
+  Spec[i] = CM$byClass[2]
+}
+}
+MeanAcc = colMeans(masterAcc)
+plot(seq(1,numks,1),MeanAcc, type = "l")
+
+combo = data_frame(k = 1:30, Accuracy = kkk ,Sensitivity = Sens, Specificity = Spec, MeanAcc)
+
+```
+
+
+
+```{r}
+#linear models for Salaries (on attrition data before the split)
+reg = lm(MonthlyIncome~Education, attritionData)
+reg2 = lm(MonthlyIncome~TotalWorkingYears, attritionData)
+mReg = lm(MonthlyIncome~TotalWorkingYears + Education, attritionData)
+
+#Test with just two observations
+df = data.frame(TotalWorkingYears = 10, Education = 4)
+#Create new Data Frame with just experience and education to predict salary for each person
+EduTotal = noSalaryData %>% select(ID,TotalWorkingYears, Education)
+#Prediction
+pred = predict(mReg, newdata = df, interval = "confidence")
+pred2 = predict(mReg, newdata = EduTotal)
+
+#New Column with Preds
+EduTotal$MonthlySalary = pred2
+
+EduTotal$MonthlySalary = as.integer(EduTotal$MonthlySalary)
+
+#Validation Set
+vReg = lm(MonthlySalary~TotalWorkingYears + Education, EduTotal)
+vReg
+
+confint(mReg)
+
+
+#Residual Sum of Squares
+RSS = c(crossprod(vReg$residuals))
+#Mean Squared Error
+MSE = RSS / length(vReg$residuals)
+#Root MSE
+RMSE = sqrt(MSE)
+```
+
+```{r}
+#Split data to train and test
+set.seed(6)
+splitPerc = .70
+trainIndices = sample(1:dim(attritionData)[1], round(splitPerc * dim(attritionData)[1]))
+train = attritionData[trainIndices,]
+test = attritionData[-trainIndices,]
+
+#Linear Reg on Training Model
+fit = lm(MonthlyIncome~TotalWorkingYears + Education, train)
+#Linear Reg on Testing Model
+fit2 = lm(MonthlyIncome~TotalWorkingYears + Education, test)
+
+#Train Residual Sum of Squares
+RSS_T = c(crossprod(fit$residuals))
+#Train Mean Squared Error
+MSE_T = RSS_T / length(fit$residuals)
+#Train Root MSE
+RMSE_T = sqrt(MSE_T)
+
+#Test Residual Sum of Squares
+RSS_Te = c(crossprod(fit2$residuals))
+#Test Mean Squared Error
+MSE_Te = RSS_Te / length(fit2$residuals)
+#Test Root MSE
+RMSE_Te = sqrt(MSE_Te)
+```
