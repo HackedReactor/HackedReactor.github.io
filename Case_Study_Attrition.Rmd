@@ -5,12 +5,12 @@ date: "4/13/2020"
 output: html_document
 ---
 
-#Attrition and Income- Frito Lays
+# Attrition and Income- Frito Lays
 
-##Introduction
+## Introduction
 Greetings! Today we will be discussing "Attrition and Income" too check what leads to attrition and income levels for talent management. 
 
-#Setting up the environment
+# Setting up the environment
 ```{r}
 #Loading in the required libraries
 library(stringr)
@@ -37,7 +37,7 @@ summary(attritionData)
 summary(noAttritionData)
 ```
 
-##Exploratory Data Analysis
+## Exploratory Data Analysis
 As part of the first step we would like to take a rough look at the data at hand. We want to do some intial analysis to see if anything catches our eye. Additionally, we will take a look at the data types for the variables to see what we are working with.
 
 Couple of quick notes (as per a preliminary analysis):
@@ -78,7 +78,7 @@ As per the above correlogram, there seems to be a strong relationship of certain
 - TotalWorkingYears: Strong correlation at 0.8
 - YearsAtCompany: Moderate correlation at 0.5
 
-##Finding Attrition Factors
+## Finding Attrition Factors
 ```{r}
 ###Lets look at a rough analysis on multiple different columns to see if we can figure something out
 attritionData %>% select(MonthlyIncome, Age, TotalWorkingYears, YearsAtCompany, Attrition) %>% ggpairs(mapping = aes(color = Attrition)) + ggtitle("Monthly Income vs Education, Experience, and Attrition")
@@ -125,14 +125,14 @@ StockOptionLevel
 - The higher positions, such as researchers and executives have the most stock options and the higher attrition rate per the other job posts
 - Possibly leave once their portfolio matures at the company, to make a passive income.
 
-#Interesting Facts/Trend
+# Interesting Facts/Trend
 There was also an interesting trend that was noticed as something that is interesting. As per the bar chart it looks like the most satisfying job is the Sales Executive Job. Human resources specialists and managers seem to have the lower job satisfaction. There is definitely more men than women that filled some of these roles.
 ```{r}
 attritionData %>% ggplot(aes(x = JobRole, y = JobSatisfaction, fill = Gender)) + geom_bar(stat = "identity", width = .5) + labs(title = "Job Satisfaction by Role", subtitle = "Which gender has the higher job satisfaction?") + theme(axis.text.x = element_text(angle = 60, vjust = 0.6))
 ```
 
 
-##Attrition - KNN
+## Attrition - KNN
 We identified our top three factors to determine Attrition. In this data set the Attrition factors are not proportionate, if you try different combos of variables it is hard to achieve the 60/60 split. The below variables are some that were found to affect attrition and are my pick for top 3.
 - Age
 - Stock Option Level
@@ -243,7 +243,7 @@ mean(combo$Sensitivity[1:26])
 ```
 As per the above data we reached the criteria to hit a 60/60 split. This is after 500 iterations of different samples taken from the dimension of the data set. The data frame was broken down to include just the three target variables that we found to affect attrition. Depending on the random samples taken we seem to hit different specificity rates at different times. Sometime we have a 80/80 split and sometimes it goes lower to 80/60. The best value for K that has the best acc/sens/spec falls around 13-19 for that reason selected a K- value at 15 to predict the competition set.
 
-##Monthly Income Linear Regression
+## Monthly Income Linear Regression
 As per the intial analysis and EDA, we have what we need to create a linear regression model that would give us the best prediction for monthly salary. To reiterate the following independent variables were chosen to be represented in the model to predict monthly income:
 - Total Working Years
 - Age
@@ -295,7 +295,7 @@ RMSE_V = sqrt(MSE_V)
 ```
 We get a final RMSE of 1379.26 for our model. This meets the requirement for the RMSE < 3000. As you can see it makes some good predictions. Of course adding some more variables that had some correlation is beneficial, but from further research it would not have made as much of a difference.
 
-##Conclusion
+## Conclusion
 To conclude, the data set itself was a little bit difficult to work with. There were far more numerical variable then there were categorical variables. From the initial analysis we found the variables that we needed to test attrition and monthly salary. Predicting the salary was straightforward as there is many correlation for montly income and other variables the can be used to predict income. We also found some interesting information and trends within this data. Attrition was a little bit difficult to classify correctly, as the attrition data not proportional. There was far less turnover/attrition in the company, which made classification difficult but not impossible. Overall we achieved the following:
 RMSE < 3000
 60/60 Sensitivity and Specificity rate for Attrition.
