@@ -7,10 +7,13 @@ output: html_document
 
 # Attrition and Income- Frito Lays
 
+## Executive Summary
+In this Rmarkdown file you will find analysis for Frito Lays from the data that was presented to our company. After reviewing this file, you will gain a better understanding of the some of the data including Monthly Income and Attrition. It will also include some bonuses that gives a look into some trends that Frito-Lays might find useful. The document will be wrapped up with the models and predictions that came about those models.
+
 ## Introduction
 Greetings! Today we will be discussing "Attrition and Income" too check what leads to attrition and income levels for talent management. 
 
-# Setting up the environment
+## Setting up the environment
 ```{r}
 #Loading in the required libraries
 library(stringr)
@@ -59,6 +62,24 @@ summary(categoricalVar)
 numericalVar = attritionData[,!sapply(attritionData, is.factor)]
 summary(numericalVar)
 
+table1 = data.frame(Gender = count(attritionData$Gender))
+table2 = data.frame(Attrition = count(attritionData$Attrition))
+oneDf = cbind(table1, table2)
+oneDf$AtrritionPerc = oneDf$Attrition.freq/870
+oneDf$GenderPerc = oneDf$Gender.freq/870
+oneDf$AtrritionPerc = round(oneDf$AtrritionPerc,2)
+oneDf$GenderPerc = round(oneDf$GenderPerc,2)
+
+pct = round(oneDf$GenderPerc*100)
+lbls = paste(oneDf$Gender.x, pct)
+lbls = paste(lbls,"%", sep = "")
+pie(oneDf$Gender.freq, labels = lbls, col = rainbow(length(lbls)), main = "Pie Chart of Gender")
+
+pct1 = round(oneDf$AtrritionPerc*100)
+lbls1 = paste(oneDf$Attrition.x, pct1)
+lbls1 = paste(lbls1,"%", sep = "")
+pie(oneDf$Attrition.freq, labels = lbls1, col = rainbow(length(lbls1)), main = "Pie Chart of Attrition")
+
 #Observing numerical variables that we can use to predict monthly income for linear regression equation.
 corr = round(cor(numericalVar), 1)
 ggcorrplot(corr, hc.method = TRUE,
@@ -94,7 +115,7 @@ attritionData %>% ggplot(aes(x = MonthlyIncome, y = JobLevel, color = Attrition)
 summary(attritionData$Age)
 
 #I want to see what relationship age and years since last promotion have with attrition. Does the age and the years since last promotion affect attrition?
-attritionData %>% ggplot(aes(x = Age, y = YearsSinceLastPromotion, color = Attrition)) + geom_point(position = "jitter") + geom_smooth(method = "lm", se = F) + ggtitle("Age vs Years at Company colored by Attrition")
+attritionData %>% ggplot(aes(x = Age, y = YearsSinceLastPromotion, color = Attrition)) + geom_point(position = "jitter") + geom_smooth(method = "lm", se = F) + ggtitle("Age vs Years Since Last Promotion colored by Attrition")
 
 #Creating an new column with age groups the ages fall under
 attritionData = attritionData %>% mutate(ageGroup = case_when(Age >=18 & Age <= 30 ~ '18-30',
@@ -109,7 +130,7 @@ ageCountFinal = ageCountFinal %>% mutate(Perc = n/870)
 ageCountFinal$Perc = round(ageCountFinal$Perc*100, digits = 3)
 
 #Failed attempt to create a pie chart 
-#attritionData %>% ggplot(aes(x = JobRole, y = StockOptionLevel, fill = Attrition)) + geom_bar(stat = "identity", width = .5) + labs(title = "Stock Option #Level", subtitle = "By Job Role and colored by Attrition") + theme(axis.text.x = element_text(angle = 65, vjust = 0.6))
+attritionData %>% ggplot(aes(x = JobRole, y = StockOptionLevel, fill = Attrition)) + geom_bar(stat = "identity", width = .5) + labs(title = "Stock Option Level", subtitle = "By Job Role and colored by Attrition") + theme(axis.text.x = element_text(angle = 65, vjust = 0.6))
 
 ```
 At a glance, it looks like age and years since last promotion do play a big role for turnover/attrition. As per the final graph there seems to be some information that tells us that there are many young people that seem to leave the company. At 0 since years since last promotion, this tells me that they have not been working in the company as long. 
@@ -183,8 +204,7 @@ noAttr$Attrition = attr_pred
 confusionMatrix(table(attr_pred, noAttr$Attrition))
 predictionsAttrition = noAttr %>% select(ID, Attrition)
 
-#writing to csv
-#write.csv(predictionsAttrition, file = "Case2PredictionsClassifyVankina Attrtion.csv")
+write.csv(predictionsAttrition, file = "Case2PredictionsClassifyVankina Attrtion.csv")
 
 
 #Train Data and Test Set
@@ -238,7 +258,7 @@ plot(seq(1,numks,1),MeanAcc, type = "l")
 combo = data_frame(k = 1:30,Sensitivity = Sens, Specificity = Spec, MeanAcc)
 
 mean(combo$MeanAcc[1:26])
-mean(combo$Specificity[1:18])
+mean(combo$Specificity[1:19])
 mean(combo$Sensitivity[1:26])
 ```
 As per the above data we reached the criteria to hit a 60/60 split. This is after 500 iterations of different samples taken from the dimension of the data set. The data frame was broken down to include just the three target variables that we found to affect attrition. Depending on the random samples taken we seem to hit different specificity rates at different times. Sometime we have a 80/80 split and sometimes it goes lower to 80/60. The best value for K that has the best acc/sens/spec falls around 13-19 for that reason selected a K- value at 15 to predict the competition set.
@@ -271,6 +291,7 @@ MSE = RSS / length(mReg$residuals)
 #Root MSE
 RMSE = sqrt(MSE)
 
+RMSE
 
 #New Column with Preds
 EduTotal$MonthlySalary = pred2
@@ -292,6 +313,8 @@ RSS_V = c(crossprod(vReg$residuals))
 MSE_V = RSS_V / length(vReg$residuals)
 #Root MSE
 RMSE_V = sqrt(MSE_V)
+
+RMSE_V
 ```
 We get a final RMSE of 1379.26 for our model. This meets the requirement for the RMSE < 3000. As you can see it makes some good predictions. Of course adding some more variables that had some correlation is beneficial, but from further research it would not have made as much of a difference.
 

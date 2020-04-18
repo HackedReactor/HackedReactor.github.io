@@ -317,13 +317,16 @@ $(document).ready(function () {
 
 <div id="attrition-and-income--frito-lays" class="section level1">
 <h1>Attrition and Income- Frito Lays</h1>
+<div id="executive-summary" class="section level2">
+<h2>Executive Summary</h2>
+<p>In this Rmarkdown file you will find analysis for Frito Lays from the data that was presented to our company. After reviewing this file, you will gain a better understanding of the some of the data including Monthly Income and Attrition. It will also include some bonuses that gives a look into some trends that Frito-Lays might find useful. The document will be wrapped up with the models and predictions that came about those models.</p>
+</div>
 <div id="introduction" class="section level2">
 <h2>Introduction</h2>
 <p>Greetings! Today we will be discussing “Attrition and Income” too check what leads to attrition and income levels for talent management.</p>
 </div>
-</div>
-<div id="setting-up-the-environment" class="section level1">
-<h1>Setting up the environment</h1>
+<div id="setting-up-the-environment" class="section level2">
+<h2>Setting up the environment</h2>
 <pre class="r"><code>#Loading in the required libraries
 library(stringr)
 library(dplyr)</code></pre>
@@ -552,6 +555,7 @@ summary(attritionData)</code></pre>
 ##  3rd Qu.: 3.00           3rd Qu.: 7.00       
 ##  Max.   :15.00           Max.   :17.00       
 ## </code></pre>
+</div>
 <div id="exploratory-data-analysis" class="section level2">
 <h2>Exploratory Data Analysis</h2>
 <p>As part of the first step we would like to take a rough look at the data at hand. We want to do some intial analysis to see if anything catches our eye. Additionally, we will take a look at the data types for the variables to see what we are working with.</p>
@@ -701,6 +705,24 @@ summary(numericalVar)</code></pre>
 ##  Mean   : 4.205     Mean   : 2.169          Mean   : 4.14       
 ##  3rd Qu.: 7.000     3rd Qu.: 3.000          3rd Qu.: 7.00       
 ##  Max.   :18.000     Max.   :15.000          Max.   :17.00</code></pre>
+<pre class="r"><code>table1 = data.frame(Gender = count(attritionData$Gender))
+table2 = data.frame(Attrition = count(attritionData$Attrition))
+oneDf = cbind(table1, table2)
+oneDf$AtrritionPerc = oneDf$Attrition.freq/870
+oneDf$GenderPerc = oneDf$Gender.freq/870
+oneDf$AtrritionPerc = round(oneDf$AtrritionPerc,2)
+oneDf$GenderPerc = round(oneDf$GenderPerc,2)
+
+pct = round(oneDf$GenderPerc*100)
+lbls = paste(oneDf$Gender.x, pct)
+lbls = paste(lbls,&quot;%&quot;, sep = &quot;&quot;)
+pie(oneDf$Gender.freq, labels = lbls, col = rainbow(length(lbls)), main = &quot;Pie Chart of Gender&quot;)</code></pre>
+<p><img src="Case_Study_Attrition_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<pre class="r"><code>pct1 = round(oneDf$AtrritionPerc*100)
+lbls1 = paste(oneDf$Attrition.x, pct1)
+lbls1 = paste(lbls1,&quot;%&quot;, sep = &quot;&quot;)
+pie(oneDf$Attrition.freq, labels = lbls1, col = rainbow(length(lbls1)), main = &quot;Pie Chart of Attrition&quot;)</code></pre>
+<p><img src="Case_Study_Attrition_files/figure-html/unnamed-chunk-2-2.png" width="672" /></p>
 <pre class="r"><code>#Observing numerical variables that we can use to predict monthly income for linear regression equation.
 corr = round(cor(numericalVar), 1)</code></pre>
 <pre><code>## Warning in cor(numericalVar): the standard deviation is zero</code></pre>
@@ -712,7 +734,7 @@ corr = round(cor(numericalVar), 1)</code></pre>
            colors = c(&quot;tomato2&quot;, &quot;white&quot;, &quot;springgreen3&quot;),
            title = &quot;Correlogram of Numerical Employee Data&quot;,
            ggtheme = theme_bw)</code></pre>
-<p><img src="Case_Study_Attrition_files/figure-html/unnamed-chunk-2-1.png" width="672" /> Looks like there are only 9 categorical variables in the dataset and around 28 for numerical variables. This will mean we would want to do some dummy coding later when we decide the attrition factors.</p>
+<p><img src="Case_Study_Attrition_files/figure-html/unnamed-chunk-2-3.png" width="672" /> Looks like there are only 9 categorical variables in the dataset and around 28 for numerical variables. This will mean we would want to do some dummy coding later when we decide the attrition factors.</p>
 <p>As per the above correlogram, there seems to be a strong relationship of certain variable intune with Monthly income: - Job Level: Strong correlation at 1 - Age: Moderate correlation at 0.5 - TotalWorkingYears: Strong correlation at 0.8 - YearsAtCompany: Moderate correlation at 0.5</p>
 </div>
 <div id="finding-attrition-factors" class="section level2">
@@ -740,7 +762,7 @@ attritionData %&gt;% ggplot(aes(x = MonthlyIncome, y = JobLevel, color = Attriti
 <pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
 ##   18.00   30.00   35.00   36.83   43.00   60.00</code></pre>
 <pre class="r"><code>#I want to see what relationship age and years since last promotion have with attrition. Does the age and the years since last promotion affect attrition?
-attritionData %&gt;% ggplot(aes(x = Age, y = YearsSinceLastPromotion, color = Attrition)) + geom_point(position = &quot;jitter&quot;) + geom_smooth(method = &quot;lm&quot;, se = F) + ggtitle(&quot;Age vs Years at Company colored by Attrition&quot;)</code></pre>
+attritionData %&gt;% ggplot(aes(x = Age, y = YearsSinceLastPromotion, color = Attrition)) + geom_point(position = &quot;jitter&quot;) + geom_smooth(method = &quot;lm&quot;, se = F) + ggtitle(&quot;Age vs Years Since Last Promotion colored by Attrition&quot;)</code></pre>
 <p><img src="Case_Study_Attrition_files/figure-html/unnamed-chunk-3-5.png" width="672" /></p>
 <pre class="r"><code>#Creating an new column with age groups the ages fall under
 attritionData = attritionData %&gt;% mutate(ageGroup = case_when(Age &gt;=18 &amp; Age &lt;= 30 ~ &#39;18-30&#39;,
@@ -759,8 +781,8 @@ ageCountFinal = ageCountFinal %&gt;% mutate(Perc = n/870)
 ageCountFinal$Perc = round(ageCountFinal$Perc*100, digits = 3)
 
 #Failed attempt to create a pie chart 
-#attritionData %&gt;% ggplot(aes(x = JobRole, y = StockOptionLevel, fill = Attrition)) + geom_bar(stat = &quot;identity&quot;, width = .5) + labs(title = &quot;Stock Option #Level&quot;, subtitle = &quot;By Job Role and colored by Attrition&quot;) + theme(axis.text.x = element_text(angle = 65, vjust = 0.6))</code></pre>
-<p>At a glance, it looks like age and years since last promotion do play a big role for turnover/attrition. As per the final graph there seems to be some information that tells us that there are many young people that seem to leave the company. At 0 since years since last promotion, this tells me that they have not been working in the company as long.</p>
+attritionData %&gt;% ggplot(aes(x = JobRole, y = StockOptionLevel, fill = Attrition)) + geom_bar(stat = &quot;identity&quot;, width = .5) + labs(title = &quot;Stock Option Level&quot;, subtitle = &quot;By Job Role and colored by Attrition&quot;) + theme(axis.text.x = element_text(angle = 65, vjust = 0.6))</code></pre>
+<p><img src="Case_Study_Attrition_files/figure-html/unnamed-chunk-3-6.png" width="672" /> At a glance, it looks like age and years since last promotion do play a big role for turnover/attrition. As per the final graph there seems to be some information that tells us that there are many young people that seem to leave the company. At 0 since years since last promotion, this tells me that they have not been working in the company as long.</p>
 <p>Final picks: Age - 6.6% Attrition perc for employees 18-30 - 7.2% Attrition perc for employees 31-45 - 2.3% Attrition perc for employees 45-60 YearSinceLastPromotion - Wild Card, has a mixed bag of attrition rates as per the graph StockOptionLevel - The higher positions, such as researchers and executives have the most stock options and the higher attrition rate per the other job posts - Possibly leave once their portfolio matures at the company, to make a passive income.</p>
 </div>
 </div>
@@ -844,8 +866,7 @@ confusionMatrix(table(attr_pred, noAttr$Attrition))</code></pre>
 ## </code></pre>
 <pre class="r"><code>predictionsAttrition = noAttr %&gt;% select(ID, Attrition)
 
-#writing to csv
-#write.csv(predictionsAttrition, file = &quot;Case2PredictionsClassifyVankina Attrtion.csv&quot;)
+write.csv(predictionsAttrition, file = &quot;Case2PredictionsClassifyVankina Attrtion.csv&quot;)
 
 
 #Train Data and Test Set
@@ -993,8 +1014,8 @@ plot(seq(1,numks,1),MeanAcc, type = &quot;l&quot;)</code></pre>
 ## This warning is displayed once per session.</code></pre>
 <pre class="r"><code>mean(combo$MeanAcc[1:26])</code></pre>
 <pre><code>## [1] 0.8350958</code></pre>
-<pre class="r"><code>mean(combo$Specificity[1:18])</code></pre>
-<pre><code>## [1] 0.653385</code></pre>
+<pre class="r"><code>mean(combo$Specificity[1:19])</code></pre>
+<pre><code>## [1] 0.6611016</code></pre>
 <pre class="r"><code>mean(combo$Sensitivity[1:26])</code></pre>
 <pre><code>## [1] 0.8637354</code></pre>
 <p>As per the above data we reached the criteria to hit a 60/60 split. This is after 500 iterations of different samples taken from the dimension of the data set. The data frame was broken down to include just the three target variables that we found to affect attrition. Depending on the random samples taken we seem to hit different specificity rates at different times. Sometime we have a 80/80 split and sometimes it goes lower to 80/60. The best value for K that has the best acc/sens/spec falls around 13-19 for that reason selected a K- value at 15 to predict the competition set.</p>
@@ -1023,8 +1044,9 @@ MSE = RSS / length(mReg$residuals)
 #Root MSE
 RMSE = sqrt(MSE)
 
-
-#New Column with Preds
+RMSE</code></pre>
+<pre><code>## [1] 1379.235</code></pre>
+<pre class="r"><code>#New Column with Preds
 EduTotal$MonthlySalary = pred2
 EduTotal$MonthlySalary = as.integer(EduTotal$MonthlySalary)
 
@@ -1058,7 +1080,10 @@ RSS_V = c(crossprod(vReg$residuals))
 #Mean Squared Error
 MSE_V = RSS_V / length(vReg$residuals)
 #Root MSE
-RMSE_V = sqrt(MSE_V)</code></pre>
+RMSE_V = sqrt(MSE_V)
+
+RMSE_V</code></pre>
+<pre><code>## [1] 0.2872739</code></pre>
 <p>We get a final RMSE of 1379.26 for our model. This meets the requirement for the RMSE &lt; 3000. As you can see it makes some good predictions. Of course adding some more variables that had some correlation is beneficial, but from further research it would not have made as much of a difference.</p>
 </div>
 <div id="conclusion" class="section level2">
