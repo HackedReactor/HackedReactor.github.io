@@ -177,14 +177,14 @@ attritionData$Travel_Num = as.integer(attritionData$Travel_Num)
 noAttr = noAttritionData %>% select(ID, Age, StockOptionLevel, YearsSinceLastPromotion)
 #Lets do KNN
 case = attritionData %>% select(ID, Age, StockOptionLevel, YearsSinceLastPromotion, Attrition) %>% group_by(ID)
-knn(case[,c(2,3,4)], att, case$Attrition, k = 3, prob = TRUE)
 #For predicting our classification to the competition set.
 attr_pred = knn(case[,c(2,3,4)], noAttr[,c(2,3,4)], case$Attrition, k = 13, prob = TRUE)
 noAttr$Attrition = attr_pred
 confusionMatrix(table(attr_pred, noAttr$Attrition))
 predictionsAttrition = noAttr %>% select(ID, Attrition)
 
-write.csv(predictionsAttrition, file = "Case2PredictionsClassifyVankina Attrtion.csv")
+#writing to csv
+#write.csv(predictionsAttrition, file = "Case2PredictionsClassifyVankina Attrtion.csv")
 
 
 #Train Data and Test Set
@@ -262,7 +262,6 @@ df = data.frame(TotalWorkingYears = 10, Education = 4)
 #Create new Data Frame with just experience and education to predict salary for each person
 EduTotal = noSalaryData %>% select(ID,TotalWorkingYears, Age, YearsAtCompany, JobLevel)
 #Prediction
-pred = predict(mReg, newdata = df, interval = "confidence")
 pred2 = predict(mReg, newdata = EduTotal)
 
 #Residual Sum of Squares
